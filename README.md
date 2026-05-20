@@ -59,7 +59,8 @@ The app will be available at `http://localhost:8000`.
 
 1. Go to [railway.app](https://railway.app) and create a new project
 2. Add a **MySQL** or **PostgreSQL** plugin (Railway provides both)
-3. Add a **Redis** plugin (required for broadcasting queue)
+
+No Redis or queue worker needed — this app uses a sync queue driver and database-backed sessions/cache, keeping the deployment to just two services.
 
 ### 2. Connect your repo
 
@@ -88,12 +89,11 @@ DB_DATABASE=${{Postgres.PGDATABASE}}
 DB_USERNAME=${{Postgres.PGUSER}}
 DB_PASSWORD=${{Postgres.PGPASSWORD}}
 
-# Queue (use Redis for real-time broadcasting)
-REDIS_URL=${{Redis.REDIS_URL}}
-QUEUE_CONNECTION=redis
+# No Redis needed — sync queue, database session/cache
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=database
+CACHE_STORE=database
 BROADCAST_CONNECTION=reverb
-SESSION_DRIVER=redis
-CACHE_STORE=redis
 
 # Reverb
 REVERB_APP_ID=<your-reverb-app-id>
@@ -153,16 +153,7 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 
 After deploying, set the Reverb service's Railway domain as `VITE_REVERB_HOST` in the main app service.
 
-### 7. Deploy a queue worker
-
-Add a third Railway service (worker) with:
-
-```bash
-# Start command for queue worker
-php artisan queue:work --sleep=3 --tries=3 --max-time=3600
-```
-
-### 8. Configure CORS for Reverb
+### 7. Configure CORS for Reverb
 
 In `config/reverb.php`, set allowed origins to your Railway domain:
 
@@ -174,11 +165,10 @@ In `config/reverb.php`, set allowed origins to your Railway domain:
 
 ## Railway Service Summary
 
-| Service  | Purpose          | Start Command                                                                         |
-| -------- | ---------------- | ------------------------------------------------------------------------------------- |
+| Service  | Purpose          | Start Command                                                                          |
+| -------- | ---------------- | -------------------------------------------------------------------------------------- |
 | `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
 | `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                 |
-| `worker` | Queue processing | `php artisan queue:work --sleep=3 --tries=3`                                          |
 
 ---
 
