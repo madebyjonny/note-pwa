@@ -129,6 +129,12 @@ On first visit the app redirects to `/setup` where you create your account. This
 
 ## Troubleshooting
 
+**Reverb service crashes: `Undefined constant "...SIGINT"`**
+The `pcntl` PHP extension is missing. `nixpacks.toml` enables it automatically. If you still see this error, add the following to the **Reverb** service's Variables tab and redeploy:
+```
+NIXPACKS_PHP_EXTENSIONS=pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl
+```
+
 **`composer install` fails: lock file not compatible, requires PHP >=8.4`**
 Railway picked PHP 8.3. Add `NIXPACKS_PHP_VERSION=8.4` to the service's environment variables and redeploy.
 
