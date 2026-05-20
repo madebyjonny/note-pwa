@@ -32,6 +32,16 @@
             })();
         </script>
 
+        <!-- Reverb runtime config (injected server-side so build-time VITE_ vars are not needed) -->
+        <script>
+            window.__reverb = {
+                key: @json(config('reverb.apps.apps.0.key', '')),
+                host: @json(config('reverb.apps.apps.0.options.host', '127.0.0.1')),
+                port: @json((int) config('reverb.apps.apps.0.options.port', 8080)),
+                scheme: @json(config('reverb.apps.apps.0.options.scheme', 'http')),
+            };
+        </script>
+
         <!-- Scripts -->
         @routes
         @viteReactRefresh
