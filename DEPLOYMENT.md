@@ -104,8 +104,8 @@ In `config/reverb.php`:
 
 ## Service summary
 
-| Service  | Purpose          | Start command                                                                          |
-| -------- | ---------------- | -------------------------------------------------------------------------------------- |
+| Service  | Purpose          | Start command                                                                         |
+| -------- | ---------------- | ------------------------------------------------------------------------------------- |
 | `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
 | `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                 |
 
