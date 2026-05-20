@@ -23,7 +23,8 @@ APP_NAME=Notes
 APP_ENV=production
 APP_KEY=base64:<generated>          # php artisan key:generate --show
 APP_DEBUG=false
-APP_URL=https://your-app.railway.app
+APP_URL=https://your-app.railway.app   # must be https:// — used to generate asset URLs
+ASSET_URL=https://your-app.railway.app
 
 # Database (Railway plugin references)
 DB_CONNECTION=pgsql
@@ -125,6 +126,11 @@ The `pcntl` PHP extension is missing. `nixpacks.toml` enables it automatically. 
 ```
 NIXPACKS_PHP_EXTENSIONS=pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl
 ```
+
+**Assets load over HTTP instead of HTTPS / mixed content errors**
+Railway terminates SSL at its proxy and forwards requests to your app over plain HTTP. Laravel needs to trust that proxy to know the original request was HTTPS.
+- `bootstrap/app.php` already has `trustProxies(at: '*')` to handle this.
+- Make sure `APP_URL` and `ASSET_URL` both start with `https://` in your Railway Variables.
 
 **`composer install` fails: lock file not compatible, requires PHP >=8.4`**
 Railway picked PHP 8.3. Add `NIXPACKS_PHP_VERSION=8.4` to the service's environment variables and redeploy.
