@@ -55,13 +55,23 @@ VITE_REVERB_PORT=443
 VITE_REVERB_SCHEME=https
 ```
 
-## 4. Build command
+## 4. PHP version
+
+Railway defaults to PHP 8.3. This project requires PHP 8.4 (Symfony 8 / Laravel 13). The `nixpacks.toml` in the repo root pins it automatically — no manual config needed.
+
+If Railway still picks the wrong version, add this environment variable in the service's **Variables** tab:
+
+```
+NIXPACKS_PHP_VERSION=8.4
+```
+
+## 5. Build command
 
 ```bash
 composer install --no-dev --optimize-autoloader && npm ci --legacy-peer-deps && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache
 ```
 
-## 5. Start command
+## 6. Start command
 
 ```bash
 php artisan migrate --force && php -S 0.0.0.0:$PORT -t public
@@ -80,7 +90,7 @@ Then set start command to:
 php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT
 ```
 
-## 6. Reverb service
+## 7. Reverb service
 
 Add a second Railway service from the same repo.
 
@@ -92,7 +102,7 @@ php artisan reverb:start --host=0.0.0.0 --port=8080
 
 Once deployed, copy the service's Railway domain into `VITE_REVERB_HOST` on the `web` service.
 
-## 7. CORS for Reverb
+## 8. CORS for Reverb
 
 In `config/reverb.php`:
 
@@ -112,3 +122,13 @@ In `config/reverb.php`:
 ## First run
 
 On first visit the app redirects to `/setup` where you create your account. This page is permanently disabled once a user exists.
+
+---
+
+## Troubleshooting
+
+**`composer install` fails: lock file not compatible, requires PHP >=8.4`**
+Railway picked PHP 8.3. Add `NIXPACKS_PHP_VERSION=8.4` to the service's environment variables and redeploy.
+
+**`npm ci` fails: package-lock.json out of sync**
+Run `npm install --legacy-peer-deps` locally, commit the updated `package-lock.json`, and push.
