@@ -68,10 +68,11 @@ NIXPACKS_PHP_VERSION=8.4
 ## 5. Build command
 
 ```bash
-composer install --no-dev --optimize-autoloader && npm ci --legacy-peer-deps && npm run build
+composer install --no-dev --optimize-autoloader && npm install --legacy-peer-deps && npm run build
 ```
 
 > Do **not** run `artisan config:cache` / `route:cache` / `view:cache` here — they run without real env vars at build time and will cache broken values.
+> `npm install` is used instead of `npm ci` to avoid an EBUSY error when Railway's cached `node_modules/.cache` directory is locked.
 
 ## 6. Start command
 
