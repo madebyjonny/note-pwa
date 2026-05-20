@@ -2,58 +2,78 @@
 
 # Notes PWA
 
-A Notion-inspired notes app built with Laravel 13, Inertia.js, React, and BlockNote. Supports real-time sync via Laravel Reverb, dark/light mode, and works as a Progressive Web App (PWA) on desktop and mobile.
+A Notion-inspired notes app. Block-based rich text editing, real-time sync, dark/light mode, and installable as a PWA on desktop and mobile.
 
 ## Tech Stack
 
-- **Backend**: Laravel 13, PHP 8.4
-- **Frontend**: React 18 + TypeScript, Inertia.js (SSR)
-- **Editor**: BlockNote (rich text / block-based editor)
-- **Real-time**: Laravel Reverb (WebSocket)
-- **Styling**: Tailwind CSS v4, Framer Motion
-- **Auth**: Laravel Breeze
-- **PWA**: Web App Manifest + Service Worker
-
----
+| Layer | Technology |
+|---|---|
+| Backend | Laravel 13, PHP 8.4 |
+| Frontend | React 18 + TypeScript, Inertia.js (SSR) |
+| Editor | BlockNote |
+| Real-time | Laravel Reverb (WebSocket) |
+| Styling | Tailwind CSS v4, Framer Motion |
+| Auth | Laravel Breeze (single-user, setup-on-first-run) |
+| PWA | Web App Manifest + Service Worker |
 
 ## Local Development
 
 ### Prerequisites
 
-- PHP 8.2+
-- Composer
-- Node.js 20+ and npm
-- A database (SQLite works out of the box)
+- PHP 8.2+, Composer
+- Node.js 20+, npm
 
 ### Setup
 
 ```bash
-# Install PHP dependencies
 composer install
-
-# Install JS dependencies
 npm install --legacy-peer-deps
-
-# Copy environment file
 cp .env.example .env
-
-# Generate app key
 php artisan key:generate
-
-# Run migrations
 php artisan migrate
-
-# Start all dev processes (Laravel, Vite, Reverb)
 composer run dev
 ```
 
-The app will be available at `http://localhost:8000`.
+The app will be at `http://localhost:8000`. On first visit you'll be prompted to create your account.
 
-> `composer run dev` starts Laravel, Vite HMR, Reverb WebSocket server, a queue listener, and the Pail log viewer concurrently via `npx concurrently`. See `composer.json` → `scripts.dev`.
+`composer run dev` starts Laravel, Vite HMR, Reverb WebSocket server, queue listener, and Pail log viewer concurrently.
 
----
+## Single-user
 
-## Deploying to Railway
+There is no public registration. On first run (no users in the database) the app redirects to `/setup` where you create the one account. That page is permanently disabled once a user exists.
+
+## PWA Icons
+
+Icons live in `public/icons/`. To regenerate from the SVG source:
+
+```bash
+node -e "
+const sharp = require('sharp');
+const fs = require('fs');
+const svg = fs.readFileSync('public/icons/icon.svg');
+[16, 32, 192, 512].forEach(s =>
+  sharp(svg).resize(s, s).png().toFile('public/icons/icon-' + s + '.png')
+    .then(() => console.log('Generated', s + 'px'))
+);
+"
+```
+
+## Dark Mode
+
+Applied automatically from OS preference on first visit. Toggle in the sidebar. Stored in `localStorage`.
+
+## Tailwind note
+
+Uses Tailwind v4 — `tailwind.config.js` is inert. All theme config lives in `resources/css/app.css` inside `@theme {}` blocks.
+
+## Deploying
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) for Railway setup.
+
+## License
+
+MIT
+
 
 ### 1. Create a Railway project
 
