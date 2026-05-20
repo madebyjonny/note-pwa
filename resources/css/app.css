@@ -45,6 +45,24 @@ html.dark .bn-editor {
     color: var(--color-text-primary) !important;
 }
 
+/* Mobile: remove BlockNote's internal left gutter (reserved for drag handles).
+   Drag handles aren't usable on touch, so we hide them and reclaim the space. */
+@media (max-width: 767px) {
+    .bn-editor {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    .bn-side-menu {
+        display: none !important;
+    }
+    /* Each block has its own left padding for the drag-handle column — remove it */
+    .bn-block-outer,
+    .bn-block {
+        padding-left: 0 !important;
+        margin-left: 0 !important;
+    }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 6px;

@@ -131,7 +131,7 @@ export default function Show({ note }: Props) {
     }, [title]);
 
     return (
-        <div className="max-w-3xl mx-auto px-4 py-6 pb-32 w-full md:px-8 md:py-10">
+        <div className="w-full max-w-3xl mx-auto px-4 py-4 pb-32 md:px-10 md:py-8">
             {/* Toolbar */}
             <div className="flex items-center justify-end gap-1 mb-6 h-8">
                 <AnimatePresence>
