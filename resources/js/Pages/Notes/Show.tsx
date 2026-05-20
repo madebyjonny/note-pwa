@@ -30,7 +30,7 @@ export default function Show({ note }: Props) {
     const saveTimer = useRef<ReturnType<typeof setTimeout>>();
     const titleRef = useRef<HTMLTextAreaElement>(null);
 
-    // Listen for real-time updates from other sessions
+    // Listen for real-time updates and deletions from other sessions
     useEffect(() => {
         if (typeof window === "undefined" || !window.Echo) return;
 
@@ -38,6 +38,11 @@ export default function Show({ note }: Props) {
         channel.listen(".NoteUpdated", (e: { id: number; title: string }) => {
             if (e.id === note.id) {
                 setTitle(e.title);
+            }
+        });
+        channel.listen(".NoteDeleted", (e: { id: number }) => {
+            if (e.id === note.id) {
+                router.visit(route("notes.index"));
             }
         });
 
@@ -126,7 +131,7 @@ export default function Show({ note }: Props) {
     }, [title]);
 
     return (
-        <div className="max-w-3xl mx-auto px-6 py-10 pb-32 w-full">
+        <div className="max-w-3xl mx-auto px-4 py-6 pb-32 w-full md:px-8 md:py-10">
             {/* Toolbar */}
             <div className="flex items-center justify-end gap-1 mb-6 h-8">
                 <AnimatePresence>
@@ -210,10 +215,11 @@ export default function Show({ note }: Props) {
                     onKeyDown={handleTitleKeyDown}
                     placeholder="Untitled"
                     rows={1}
-                    className="w-full resize-none overflow-hidden bg-transparent outline-none text-4xl font-bold leading-tight placeholder:opacity-20"
+                    className="w-full resize-none overflow-hidden bg-transparent outline-none text-2xl font-bold leading-tight placeholder:opacity-20 md:text-4xl"
                     style={{
                         color: "var(--color-text-primary)",
                         fontFamily: "var(--font-family-sans)",
+                        fontSize: "clamp(1.5rem, 5vw, 2.25rem)",
                     }}
                 />
             </motion.div>

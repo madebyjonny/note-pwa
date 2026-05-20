@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\NoteDeleted;
 use App\Events\NoteUpdated;
 use App\Models\Note;
 use Illuminate\Http\RedirectResponse;
@@ -82,6 +83,8 @@ class NoteController extends Controller
         $this->authorize('delete', $note);
 
         $note->delete();
+
+        broadcast(new NoteDeleted($note))->toOthers();
 
         $next = auth()->user()->notes()
             ->orderByDesc('updated_at')
