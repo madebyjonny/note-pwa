@@ -77,21 +77,10 @@ composer install --no-dev --optimize-autoloader && npm install --legacy-peer-dep
 ## 6. Start command
 
 ```bash
-php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && php -S 0.0.0.0:$PORT -t public
+php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT
 ```
 
-**Recommended** — use Laravel Octane with FrankenPHP for better performance:
-
-```bash
-composer require laravel/octane
-php artisan octane:install --server=frankenphp
-```
-
-Then set start command to:
-
-```bash
-php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT
-```
+`php artisan optimize` runs config, route, view, and event caching in one step — with the real env vars available at start time.
 
 ## 7. Reverb service
 
@@ -117,10 +106,10 @@ In `config/reverb.php`:
 
 ## Service summary
 
-| Service  | Purpose          | Start command                                                                         |
-| -------- | ---------------- | ------------------------------------------------------------------------------------- |
-| `web`    | Main app (HTTP)  | `php artisan config:cache && ... && php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
-| `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                 |
+| Service  | Purpose          | Start command                                                                                                            |
+| -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT` |
+| `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                                                    |
 
 ## First run
 
@@ -132,6 +121,7 @@ On first visit the app redirects to `/setup` where you create your account. This
 
 **Reverb service crashes: `Undefined constant "...SIGINT"`**
 The `pcntl` PHP extension is missing. `nixpacks.toml` enables it automatically. If you still see this error, add the following to the **Reverb** service's Variables tab and redeploy:
+
 ```
 NIXPACKS_PHP_EXTENSIONS=pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl
 ```
@@ -144,6 +134,7 @@ Run `npm install --legacy-peer-deps` locally, commit the updated `package-lock.j
 
 **"Application failed to respond"**
 This means the app process started but never bound to `$PORT`. Most common causes:
+
 - Artisan cache commands ran at **build time** without env vars, caching null/broken config. Move them to the start command (see above).
 - `php artisan migrate --force` failed because the database wasn't ready. Check the Railway deploy logs — look for a migration or DB connection error before the server line.
 - `APP_KEY` is missing or blank. Verify it is set in the service's Variables tab (`php artisan key:generate --show` locally to get the value).
