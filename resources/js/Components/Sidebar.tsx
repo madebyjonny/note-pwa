@@ -282,7 +282,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                             e.key === "Escape" &&
                             (setShowSearch(false), setSearch(""))
                         }
-                        className="w-full px-2 py-1.5 text-sm rounded-md outline-none"
+                        className="w-full px-2 py-1.5 text-base rounded-md outline-none"
                         style={{
                             background: "var(--color-sidebar-active)",
                             color: "var(--color-text-primary)",

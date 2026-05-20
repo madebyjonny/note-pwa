@@ -31,7 +31,7 @@ export default forwardRef(function TextInput(
         <input
             {...props}
             type={type}
-            className={`w-full px-3 py-2 text-sm rounded-md outline-none transition-colors ${className}`}
+            className={`w-full px-3 py-2 text-base rounded-md outline-none transition-colors ${className}`}
             style={{
                 background: "var(--color-editor-bg)",
                 color: "var(--color-text-primary)",
