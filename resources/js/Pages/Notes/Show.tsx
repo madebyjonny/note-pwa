@@ -9,7 +9,7 @@ import {
     useRef,
     useState,
 } from "react";
-import AppLayout from "@/Layouts/AppLayout";
+import AppLayout, { useHeaderActions } from "@/Layouts/AppLayout";
 import { Note, PageProps } from "@/types";
 
 // Lazy load the editor to avoid SSR issues with BlockNote
@@ -108,11 +108,13 @@ export default function Show({ note }: Props) {
         }
     };
 
-    const handleDelete = () => {
-        router.delete(route("notes.destroy", { note: note.id }));
-    };
+    const setHeaderActions = useHeaderActions();
 
-    const handleTogglePin = () => {
+    const handleDelete = useCallback(() => {
+        router.delete(route("notes.destroy", { note: note.id }));
+    }, [note.id]);
+
+    const handleTogglePin = useCallback(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         router.patch(
             route("notes.update", { note: note.id }),
@@ -120,20 +122,12 @@ export default function Show({ note }: Props) {
             { is_pinned: !note.is_pinned } as any,
             { preserveScroll: true, preserveState: false },
         );
-    };
+    }, [note.id, note.is_pinned]);
 
-    // Auto-resize title textarea
+    // Inject pin/delete/saving actions into AppLayout's navigation bar
     useEffect(() => {
-        if (titleRef.current) {
-            titleRef.current.style.height = "auto";
-            titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
-        }
-    }, [title]);
-
-    return (
-        <div className="w-full max-w-3xl mx-auto px-4 py-4 pb-32 md:px-10 md:py-8">
-            {/* Toolbar */}
-            <div className="flex items-center justify-end gap-1 mb-6 h-8">
+        setHeaderActions(
+            <div className="flex items-center gap-0.5 pr-1">
                 <AnimatePresence>
                     {saving && (
                         <motion.span
@@ -141,7 +135,7 @@ export default function Show({ note }: Props) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="text-xs mr-2"
+                            className="text-xs px-2"
                             style={{ color: "var(--color-text-secondary)" }}
                         >
                             Saving...
@@ -153,7 +147,7 @@ export default function Show({ note }: Props) {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            className="text-xs mr-2"
+                            className="text-xs px-2"
                             style={{ color: "var(--color-text-secondary)" }}
                         >
                             Saved
@@ -162,9 +156,9 @@ export default function Show({ note }: Props) {
                 </AnimatePresence>
 
                 <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.88 }}
                     onClick={handleTogglePin}
-                    className="p-1.5 rounded-md transition-colors cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl cursor-pointer"
                     style={{
                         color: note.is_pinned
                             ? "var(--color-text-primary)"
@@ -179,29 +173,49 @@ export default function Show({ note }: Props) {
                     }
                     title={note.is_pinned ? "Unpin" : "Pin"}
                 >
-                    {note.is_pinned ? <Pin size={14} /> : <PinOff size={14} />}
+                    {note.is_pinned ? <Pin size={18} /> : <PinOff size={18} />}
                 </motion.button>
 
                 <motion.button
-                    whileTap={{ scale: 0.9 }}
+                    whileTap={{ scale: 0.88 }}
                     onClick={handleDelete}
-                    className="p-1.5 rounded-md transition-colors cursor-pointer"
+                    className="w-11 h-11 flex items-center justify-center rounded-xl cursor-pointer"
                     style={{ color: "var(--color-text-secondary)" }}
-                    onMouseEnter={(e) => (
-                        (e.currentTarget.style.background = "#fee2e2"),
-                        (e.currentTarget.style.color = "#ef4444")
-                    )}
-                    onMouseLeave={(e) => (
-                        (e.currentTarget.style.background = "transparent"),
-                        (e.currentTarget.style.color =
-                            "var(--color-text-secondary)")
-                    )}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.background = "#fee2e2";
+                        e.currentTarget.style.color = "#ef4444";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.background = "transparent";
+                        e.currentTarget.style.color =
+                            "var(--color-text-secondary)";
+                    }}
                     title="Delete note"
                 >
-                    <Trash2 size={14} />
+                    <Trash2 size={18} />
                 </motion.button>
-            </div>
+            </div>,
+        );
+        return () => setHeaderActions(null);
+    }, [
+        note.is_pinned,
+        saving,
+        saved,
+        handleTogglePin,
+        handleDelete,
+        setHeaderActions,
+    ]);
 
+    // Auto-resize title textarea
+    useEffect(() => {
+        if (titleRef.current) {
+            titleRef.current.style.height = "auto";
+            titleRef.current.style.height = `${titleRef.current.scrollHeight}px`;
+        }
+    }, [title]);
+
+    return (
+        <div className="w-full max-w-3xl mx-auto px-4 pt-6 pb-32 md:px-10 md:pt-8">
             {/* Title */}
             <motion.div
                 initial={{ opacity: 0, y: 8 }}

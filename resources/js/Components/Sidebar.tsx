@@ -56,9 +56,10 @@ function NoteItem({
         <div>
             <motion.div
                 whileTap={{ scale: 0.98 }}
-                className="group flex items-center gap-1 px-2 py-[3px] rounded-md mx-1 cursor-pointer select-none"
+                className="group flex items-center gap-2 rounded-lg mx-1 cursor-pointer select-none min-h-11"
                 style={{
-                    paddingLeft: `${8 + depth * 16}px`,
+                    paddingLeft: `${10 + depth * 18}px`,
+                    paddingRight: "6px",
                     background: isActive
                         ? "var(--color-sidebar-active)"
                         : "transparent",
@@ -79,24 +80,24 @@ function NoteItem({
                 {hasChildren ? (
                     <button
                         onClick={() => setExpanded((v) => !v)}
-                        className="flex-shrink-0 p-0.5 rounded cursor-pointer"
+                        className="shrink-0 w-6 h-6 flex items-center justify-center rounded cursor-pointer"
                         style={{ color: "var(--color-text-secondary)" }}
                     >
                         {expanded ? (
-                            <ChevronDown size={12} />
+                            <ChevronDown size={16} />
                         ) : (
-                            <ChevronRight size={12} />
+                            <ChevronRight size={16} />
                         )}
                     </button>
                 ) : (
-                    <span className="w-[18px] flex-shrink-0" />
+                    <span className="w-6 shrink-0" />
                 )}
 
                 <Link
                     href={route("notes.show", { note: note.id })}
-                    className="flex items-center gap-1.5 flex-1 min-w-0 text-sm py-0.5"
+                    className="flex items-center gap-2 flex-1 min-w-0 text-[15px] py-1"
                 >
-                    <span className="flex-shrink-0 text-base leading-none">
+                    <span className="shrink-0 text-lg leading-none">
                         {note.emoji ?? "📄"}
                     </span>
                     <span className="truncate">{note.title || "Untitled"}</span>
@@ -113,11 +114,11 @@ function NoteItem({
                             },
                         );
                     }}
-                    className="flex-shrink-0 p-1 rounded opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     style={{ color: "var(--color-text-secondary)" }}
                     aria-label="Delete note"
                 >
-                    <Trash2 size={12} />
+                    <Trash2 size={14} />
                 </button>
             </motion.div>
 
@@ -186,16 +187,16 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
     return (
         <div className="flex flex-col h-full text-sm">
             {/* Workspace header */}
-            <div className="flex items-center justify-between px-3 h-11 flex-shrink-0">
-                <div className="flex items-center gap-2 min-w-0 flex-1">
+            <div className="flex items-center justify-between px-3 h-14 shrink-0">
+                <div className="flex items-center gap-2.5 min-w-0 flex-1">
                     <div
-                        className="w-5 h-5 rounded flex items-center justify-center flex-shrink-0 text-white text-xs font-semibold"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-white text-sm font-semibold"
                         style={{ background: "#37352f" }}
                     >
                         {user.name[0]?.toUpperCase()}
                     </div>
                     <span
-                        className="truncate text-sm font-medium"
+                        className="truncate text-[15px] font-semibold"
                         style={{ color: "var(--color-text-primary)" }}
                     >
                         {user.name}
@@ -203,7 +204,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                 </div>
                 <button
                     onClick={onToggle}
-                    className="flex-shrink-0 p-1.5 rounded-md transition-colors cursor-pointer"
+                    className="shrink-0 w-10 h-10 flex items-center justify-center rounded-xl cursor-pointer"
                     style={{ color: "var(--color-text-secondary)" }}
                     onMouseEnter={(e) =>
                         (e.currentTarget.style.background =
@@ -215,8 +216,8 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                     aria-label="Close sidebar"
                 >
                     <svg
-                        width="14"
-                        height="14"
+                        width="18"
+                        height="18"
                         viewBox="0 0 16 16"
                         fill="currentColor"
                     >
@@ -230,15 +231,15 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
             </div>
 
             {/* Nav items */}
-            <div className="px-1 space-y-0.5 flex-shrink-0">
+            <div className="px-1 space-y-0.5 shrink-0">
                 {[
                     {
-                        icon: <Search size={14} />,
+                        icon: <Search size={18} />,
                         label: "Search",
                         action: () => setShowSearch((v) => !v),
                     },
                     {
-                        icon: <BookOpen size={14} />,
+                        icon: <BookOpen size={18} />,
                         label: "All Notes",
                         href: route("notes.index"),
                     },
@@ -247,7 +248,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                         key={item.label}
                         whileTap={{ scale: 0.97 }}
                         onClick={item.action}
-                        className="flex items-center gap-2 px-2 py-[5px] rounded-md cursor-pointer"
+                        className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11"
                         style={{ color: "var(--color-text-secondary)" }}
                         onMouseEnter={(e) =>
                             (e.currentTarget.style.background =
@@ -259,11 +260,11 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                     >
                         {item.icon}
                         {item.href ? (
-                            <Link href={item.href} className="text-sm">
+                            <Link href={item.href} className="text-[15px]">
                                 {item.label}
                             </Link>
                         ) : (
-                            <span className="text-sm">{item.label}</span>
+                            <span className="text-[15px]">{item.label}</span>
                         )}
                     </motion.div>
                 ))}
@@ -344,21 +345,21 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                                 </span>
                                 <button
                                     onClick={handleNewNote}
-                                    className="p-0.5 rounded transition-colors cursor-pointer"
+                                    className="w-8 h-8 flex items-center justify-center rounded-lg cursor-pointer"
                                     style={{
                                         color: "var(--color-text-secondary)",
                                     }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.color =
-                                            "var(--color-text-primary)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.color =
-                                            "var(--color-text-secondary)")
-                                    }
+                                    onMouseEnter={(e) => {
+                                        e.currentTarget.style.background = "var(--color-sidebar-hover)";
+                                        e.currentTarget.style.color = "var(--color-text-primary)";
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        e.currentTarget.style.background = "transparent";
+                                        e.currentTarget.style.color = "var(--color-text-secondary)";
+                                    }}
                                     aria-label="New note"
                                 >
-                                    <Plus size={14} />
+                                    <Plus size={16} />
                                 </button>
                             </div>
                             {tree.length === 0 && (
@@ -385,13 +386,13 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
 
             {/* Bottom actions */}
             <div
-                className="border-t px-1 py-2 space-y-0.5 flex-shrink-0"
+                className="border-t px-1 py-1.5 space-y-0.5 shrink-0"
                 style={{ borderColor: "var(--color-border)" }}
             >
                 <motion.div
                     whileTap={{ scale: 0.97 }}
                     onClick={toggleTheme}
-                    className="flex items-center gap-2 px-2 py-[5px] rounded-md cursor-pointer"
+                    className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11"
                     style={{ color: "var(--color-text-secondary)" }}
                     onMouseEnter={(e) =>
                         (e.currentTarget.style.background =
@@ -401,8 +402,8 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                         (e.currentTarget.style.background = "transparent")
                     }
                 >
-                    {theme === "dark" ? <Sun size={14} /> : <Moon size={14} />}
-                    <span className="text-sm">
+                    {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+                    <span className="text-[15px]">
                         {theme === "dark" ? "Light mode" : "Dark mode"}
                     </span>
                 </motion.div>
@@ -410,7 +411,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                 <Link href={route("profile.edit")}>
                     <motion.div
                         whileTap={{ scale: 0.97 }}
-                        className="flex items-center gap-2 px-2 py-[5px] rounded-md cursor-pointer"
+                        className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11"
                         style={{ color: "var(--color-text-secondary)" }}
                         onMouseEnter={(e) =>
                             (e.currentTarget.style.background =
@@ -420,8 +421,8 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                             (e.currentTarget.style.background = "transparent")
                         }
                     >
-                        <Settings size={14} />
-                        <span className="text-sm">Settings</span>
+                        <Settings size={18} />
+                        <span className="text-[15px]">Settings</span>
                     </motion.div>
                 </Link>
 
@@ -433,7 +434,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                 >
                     <motion.div
                         whileTap={{ scale: 0.97 }}
-                        className="flex items-center gap-2 px-2 py-[5px] rounded-md cursor-pointer w-full"
+                        className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11 w-full"
                         style={{ color: "var(--color-text-secondary)" }}
                         onMouseEnter={(e) =>
                             (e.currentTarget.style.background =
@@ -443,8 +444,8 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                             (e.currentTarget.style.background = "transparent")
                         }
                     >
-                        <LogOut size={14} />
-                        <span className="text-sm">Sign out</span>
+                        <LogOut size={18} />
+                        <span className="text-[15px]">Sign out</span>
                     </motion.div>
                 </Link>
             </div>

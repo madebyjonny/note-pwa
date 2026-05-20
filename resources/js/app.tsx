@@ -22,7 +22,9 @@ if (typeof window !== "undefined") {
         wsHost: rv.host ?? import.meta.env.VITE_REVERB_HOST,
         wsPort: rv.port ?? import.meta.env.VITE_REVERB_PORT ?? 80,
         wssPort: rv.port ?? import.meta.env.VITE_REVERB_PORT ?? 443,
-        forceTLS: (rv.scheme ?? import.meta.env.VITE_REVERB_SCHEME ?? "https") === "https",
+        forceTLS:
+            (rv.scheme ?? import.meta.env.VITE_REVERB_SCHEME ?? "https") ===
+            "https",
         enabledTransports: ["ws", "wss"],
     });
 }
