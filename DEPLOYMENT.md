@@ -68,13 +68,15 @@ NIXPACKS_PHP_VERSION=8.4
 ## 5. Build command
 
 ```bash
-composer install --no-dev --optimize-autoloader && npm ci --legacy-peer-deps && npm run build && php artisan config:cache && php artisan route:cache && php artisan view:cache
+composer install --no-dev --optimize-autoloader && npm ci --legacy-peer-deps && npm run build
 ```
+
+> Do **not** run `artisan config:cache` / `route:cache` / `view:cache` here — they run without real env vars at build time and will cache broken values.
 
 ## 6. Start command
 
 ```bash
-php artisan migrate --force && php -S 0.0.0.0:$PORT -t public
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && php -S 0.0.0.0:$PORT -t public
 ```
 
 **Recommended** — use Laravel Octane with FrankenPHP for better performance:
@@ -87,7 +89,7 @@ php artisan octane:install --server=frankenphp
 Then set start command to:
 
 ```bash
-php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT
+php artisan config:cache && php artisan route:cache && php artisan view:cache && php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT
 ```
 
 ## 7. Reverb service
@@ -116,7 +118,7 @@ In `config/reverb.php`:
 
 | Service  | Purpose          | Start command                                                                         |
 | -------- | ---------------- | ------------------------------------------------------------------------------------- |
-| `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
+| `web`    | Main app (HTTP)  | `php artisan config:cache && ... && php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
 | `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                 |
 
 ## First run
@@ -132,3 +134,9 @@ Railway picked PHP 8.3. Add `NIXPACKS_PHP_VERSION=8.4` to the service's environm
 
 **`npm ci` fails: package-lock.json out of sync**
 Run `npm install --legacy-peer-deps` locally, commit the updated `package-lock.json`, and push.
+
+**"Application failed to respond"**
+This means the app process started but never bound to `$PORT`. Most common causes:
+- Artisan cache commands ran at **build time** without env vars, caching null/broken config. Move them to the start command (see above).
+- `php artisan migrate --force` failed because the database wasn't ready. Check the Railway deploy logs — look for a migration or DB connection error before the server line.
+- `APP_KEY` is missing or blank. Verify it is set in the service's Variables tab (`php artisan key:generate --show` locally to get the value).
