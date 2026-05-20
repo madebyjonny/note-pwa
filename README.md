@@ -6,15 +6,15 @@ A Notion-inspired notes app. Block-based rich text editing, real-time sync, dark
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Backend | Laravel 13, PHP 8.4 |
-| Frontend | React 18 + TypeScript, Inertia.js (SSR) |
-| Editor | BlockNote |
-| Real-time | Laravel Reverb (WebSocket) |
-| Styling | Tailwind CSS v4, Framer Motion |
-| Auth | Laravel Breeze (single-user, setup-on-first-run) |
-| PWA | Web App Manifest + Service Worker |
+| Layer     | Technology                                       |
+| --------- | ------------------------------------------------ |
+| Backend   | Laravel 13, PHP 8.4                              |
+| Frontend  | React 18 + TypeScript, Inertia.js (SSR)          |
+| Editor    | BlockNote                                        |
+| Real-time | Laravel Reverb (WebSocket)                       |
+| Styling   | Tailwind CSS v4, Framer Motion                   |
+| Auth      | Laravel Breeze (single-user, setup-on-first-run) |
+| PWA       | Web App Manifest + Service Worker                |
 
 ## Local Development
 
@@ -73,7 +73,6 @@ See [DEPLOYMENT.md](DEPLOYMENT.md) for Railway setup.
 ## License
 
 MIT
-
 
 ### 1. Create a Railway project
 
@@ -185,8 +184,8 @@ In `config/reverb.php`, set allowed origins to your Railway domain:
 
 ## Railway Service Summary
 
-| Service  | Purpose          | Start Command                                                                          |
-| -------- | ---------------- | -------------------------------------------------------------------------------------- |
+| Service  | Purpose          | Start Command                                                                         |
+| -------- | ---------------- | ------------------------------------------------------------------------------------- |
 | `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan octane:start --host=0.0.0.0 --port=$PORT` |
 | `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                 |
 
