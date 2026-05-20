@@ -40,15 +40,18 @@ SESSION_DRIVER=database
 CACHE_STORE=database
 BROADCAST_CONNECTION=reverb
 
-# Reverb
+# Reverb credentials
 REVERB_APP_ID=<your-reverb-app-id>
 REVERB_APP_KEY=<your-reverb-app-key>
 REVERB_APP_SECRET=<your-reverb-app-secret>
-REVERB_HOST=0.0.0.0
-REVERB_PORT=8080
+
+# Where the web app connects TO Reverb — must be the Reverb service's Railway domain, NOT 0.0.0.0
+# Set this after you deploy the Reverb service and get its domain
+REVERB_HOST=your-reverb-service.railway.app
+REVERB_PORT=443
 REVERB_SCHEME=https
 
-# Points to the Reverb service domain (set after deploying Reverb service)
+# Frontend WebSocket connection (same host as above)
 VITE_APP_NAME="${APP_NAME}"
 VITE_REVERB_APP_KEY="${REVERB_APP_KEY}"
 VITE_REVERB_HOST=your-reverb-service.railway.app
@@ -107,10 +110,10 @@ In `config/reverb.php`:
 
 ## Service summary
 
-| Service  | Purpose          | Start command                                                                                                            |
-| -------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Service  | Purpose          | Start command                                                                                          |
+| -------- | ---------------- | ------------------------------------------------------------------------------------------------------ |
 | `web`    | Main app (HTTP)  | `php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT` |
-| `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                                                    |
+| `reverb` | WebSocket server | `php artisan reverb:start --host=0.0.0.0 --port=8080`                                                  |
 
 ## First run
 
@@ -127,8 +130,12 @@ The `pcntl` PHP extension is missing. `nixpacks.toml` enables it automatically. 
 NIXPACKS_PHP_EXTENSIONS=pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl
 ```
 
+**Broadcasting fails: `cURL error 28: SSL connection timeout` to `https://0.0.0.0:8080`**
+`REVERB_HOST` on the web service is set to `0.0.0.0` — that's the Reverb server's bind address, not the address the web app connects to. Set `REVERB_HOST` on the **web** service to the Reverb service's Railway domain (e.g. `your-reverb-service.railway.app`), with `REVERB_PORT=443` and `REVERB_SCHEME=https`. The `0.0.0.0` bind address is only used inside the Reverb start command (`--host=0.0.0.0`) and should never appear as a `REVERB_HOST` value on the web service.
+
 **Assets load over HTTP instead of HTTPS / mixed content errors**
 Railway terminates SSL at its proxy and forwards requests to your app over plain HTTP. Laravel needs to trust that proxy to know the original request was HTTPS.
+
 - `bootstrap/app.php` already has `trustProxies(at: '*')` to handle this.
 - Make sure `APP_URL` and `ASSET_URL` both start with `https://` in your Railway Variables.
 
