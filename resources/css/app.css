@@ -1,0 +1,61 @@
+@import "tailwindcss";
+@import "@blocknote/mantine/style.css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+    --font-family-sans:
+        "Inter", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+
+    --color-sidebar-bg: #f7f7f5;
+    --color-sidebar-hover: #efefed;
+    --color-sidebar-active: #e9e9e7;
+    --color-editor-bg: #ffffff;
+    --color-text-primary: #37352f;
+    --color-text-secondary: #787774;
+    --color-border: #e9e9e7;
+}
+
+html {
+    color-scheme: light;
+}
+
+html.dark {
+    color-scheme: dark;
+    --color-sidebar-bg: #202020;
+    --color-sidebar-hover: #2f2f2f;
+    --color-sidebar-active: #373737;
+    --color-editor-bg: #191919;
+    --color-text-primary: #e6e6e6;
+    --color-text-secondary: #999999;
+    --color-border: #373737;
+}
+
+body {
+    background-color: var(--color-editor-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-family-sans);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* BlockNote dark mode overrides */
+html.dark .bn-container,
+html.dark .bn-editor {
+    background-color: var(--color-editor-bg) !important;
+    color: var(--color-text-primary) !important;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--color-text-secondary);
+}
