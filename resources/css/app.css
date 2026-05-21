@@ -55,6 +55,11 @@ html.dark .bn-editor {
 .bn-side-menu {
     display: none !important;
 }
+/* Allow fast single-tap on BlockNote checkboxes without browser delay */
+.bn-checkbox {
+    touch-action: manipulation;
+    cursor: pointer;
+}
 /* Each block also carries its own left padding for the drag-handle column */
 .bn-block-outer,
 .bn-block {

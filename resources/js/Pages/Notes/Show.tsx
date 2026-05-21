@@ -158,7 +158,7 @@ export default function Show({ note }: Props) {
                 <motion.button
                     whileTap={{ scale: 0.88 }}
                     onClick={handleTogglePin}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl cursor-pointer"
+                    className="w-12 h-12 flex items-center justify-center rounded-xl cursor-pointer"
                     style={{
                         color: note.is_pinned
                             ? "var(--color-text-primary)"
@@ -173,13 +173,13 @@ export default function Show({ note }: Props) {
                     }
                     title={note.is_pinned ? "Unpin" : "Pin"}
                 >
-                    {note.is_pinned ? <Pin size={18} /> : <PinOff size={18} />}
+                    {note.is_pinned ? <Pin size={22} /> : <PinOff size={22} />}
                 </motion.button>
 
                 <motion.button
                     whileTap={{ scale: 0.88 }}
                     onClick={handleDelete}
-                    className="w-11 h-11 flex items-center justify-center rounded-xl cursor-pointer"
+                    className="w-12 h-12 flex items-center justify-center rounded-xl cursor-pointer"
                     style={{ color: "var(--color-text-secondary)" }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.background = "#fee2e2";
@@ -192,7 +192,7 @@ export default function Show({ note }: Props) {
                     }}
                     title="Delete note"
                 >
-                    <Trash2 size={18} />
+                    <Trash2 size={22} />
                 </motion.button>
             </div>,
         );

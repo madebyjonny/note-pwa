@@ -14,11 +14,9 @@ import Sidebar from "@/Components/Sidebar";
 import { PageProps } from "@/types";
 
 const SIDEBAR_W = 320;
+const SPRING = { type: "spring" as const, damping: 28, stiffness: 280, mass: 0.8 };
 
-// Child pages can inject action buttons into the top header via this context
-export const HeaderActionsContext = createContext<(actions: ReactNode) => void>(
-    () => {},
-);
+export const HeaderActionsContext = createContext<(actions: ReactNode) => void>(() => {});
 export const useHeaderActions = () => useContext(HeaderActionsContext);
 
 export default function AppLayout({ children }: PropsWithChildren) {
@@ -27,38 +25,119 @@ export default function AppLayout({ children }: PropsWithChildren) {
     const [isMobile, setIsMobile] = useState(false);
     const [headerActions, setHeaderActions] = useState<ReactNode>(null);
 
-    // Sidebar translateX as a MotionValue — decoupled from React state so drag
-    // never conflicts with spring animations.
+    // Single MotionValue drives both the sidebar position and the scrim opacity.
+    // Nothing else animates x — no Framer drag, no conflicting springs.
     const x = useMotionValue(-SIDEBAR_W);
-    const overlayOpacity = useTransform(x, [-SIDEBAR_W, 0], [0, 1]);
+    const scrimOpacity = useTransform(x, [-SIDEBAR_W, 0], [0, 0.5]);
 
+    // Ref to the active spring so we can interrupt it when the user grabs the sidebar
+    const animRef = useRef<ReturnType<typeof animate> | null>(null);
+    // Touch tracking refs — no React state so they never cause re-renders during a gesture
+    const dragStart = useRef<{ touchX: number; startX: number } | null>(null);
+    const lastTouch = useRef<{ x: number; t: number } | null>(null);
     const edgeStartX = useRef<number | null>(null);
 
     useEffect(() => {
         const check = () => {
             const mobile = window.innerWidth < 768;
             setIsMobile(mobile);
-            setSidebarOpen(!mobile);
+            if (mobile) {
+                setSidebarOpen(false);
+                x.set(-SIDEBAR_W);
+            } else {
+                setSidebarOpen(true);
+            }
         };
         check();
         window.addEventListener("resize", check);
         return () => window.removeEventListener("resize", check);
-    }, []);
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Spring the sidebar to its target position whenever open/mobile state changes
+    // Animate x to a target with a spring, interrupting any ongoing animation first
+    const springTo = useCallback((target: number) => {
+        animRef.current?.stop();
+        animRef.current = animate(x, target, SPRING);
+    }, [x]);
+
+    const openSidebar = useCallback(() => {
+        setSidebarOpen(true);
+        springTo(0);
+    }, [springTo]);
+
+    const closeSidebar = useCallback(() => {
+        setSidebarOpen(false);
+        springTo(-SIDEBAR_W);
+    }, [springTo]);
+
+    const toggleSidebar = useCallback(() => {
+        if (x.get() > -(SIDEBAR_W / 2)) closeSidebar();
+        else openSidebar();
+    }, [x, openSidebar, closeSidebar]);
+
+    // ── Mobile sidebar touch handlers ────────────────────────────────────────
+    // Attaching these to the aside element (not a Framer drag) means the sidebar
+    // follows the finger with zero latency and no constraint jitter.
+    const onSidebarTouchStart = useCallback((e: React.TouchEvent) => {
+        animRef.current?.stop(); // freeze mid-spring if the user grabs it
+        dragStart.current = { touchX: e.touches[0].clientX, startX: x.get() };
+        lastTouch.current = { x: e.touches[0].clientX, t: Date.now() };
+    }, [x]);
+
+    const onSidebarTouchMove = useCallback((e: React.TouchEvent) => {
+        if (!dragStart.current) return;
+        const dx = e.touches[0].clientX - dragStart.current.touchX;
+        x.set(Math.max(-SIDEBAR_W, Math.min(0, dragStart.current.startX + dx)));
+        lastTouch.current = { x: e.touches[0].clientX, t: Date.now() };
+    }, [x]);
+
+    const onSidebarTouchEnd = useCallback((e: React.TouchEvent) => {
+        if (!dragStart.current) return;
+        const cX = e.changedTouches[0].clientX;
+        const tx = x.get();
+        const last = lastTouch.current;
+        // Flick: fast leftward movement in the last 150 ms
+        const isFlick = last !== null && Date.now() - last.t < 150 && cX - last.x < -20;
+        dragStart.current = null;
+        if (tx < -(SIDEBAR_W * 0.35) || isFlick) closeSidebar();
+        else openSidebar();
+    }, [x, openSidebar, closeSidebar]);
+
+    // ── Edge-swipe to open (window listeners, no z-index overlay) ────────────
     useEffect(() => {
         if (!isMobile) return;
-        animate(x, sidebarOpen ? 0 : -SIDEBAR_W, {
-            type: "spring",
-            damping: 30,
-            stiffness: 300,
-            mass: 0.8,
-        });
-    }, [sidebarOpen, isMobile, x]);
 
-    const openSidebar = useCallback(() => setSidebarOpen(true), []);
-    const closeSidebar = useCallback(() => setSidebarOpen(false), []);
-    const toggleSidebar = useCallback(() => setSidebarOpen((v) => !v), []);
+        const onStart = (e: TouchEvent) => {
+            if (sidebarOpen || e.touches[0].clientX >= 32) return;
+            animRef.current?.stop();
+            edgeStartX.current = e.touches[0].clientX;
+            lastTouch.current = { x: e.touches[0].clientX, t: Date.now() };
+        };
+        const onMove = (e: TouchEvent) => {
+            if (edgeStartX.current === null) return;
+            const dx = e.touches[0].clientX - edgeStartX.current;
+            if (dx > 0) x.set(Math.min(0, -SIDEBAR_W + dx));
+            lastTouch.current = { x: e.touches[0].clientX, t: Date.now() };
+            if (dx > 60) { edgeStartX.current = null; openSidebar(); }
+        };
+        const onEnd = (e: TouchEvent) => {
+            if (edgeStartX.current === null) return;
+            const cX = e.changedTouches[0].clientX;
+            const last = lastTouch.current;
+            const isFlick = last !== null && Date.now() - last.t < 150 && cX - edgeStartX.current > 20;
+            edgeStartX.current = null;
+            if (x.get() > -(SIDEBAR_W * 0.65) || isFlick) openSidebar();
+            else closeSidebar();
+        };
+
+        window.addEventListener("touchstart", onStart, { passive: true });
+        window.addEventListener("touchmove", onMove, { passive: true });
+        window.addEventListener("touchend", onEnd, { passive: true });
+        return () => {
+            window.removeEventListener("touchstart", onStart);
+            window.removeEventListener("touchmove", onMove);
+            window.removeEventListener("touchend", onEnd);
+        };
+    }, [isMobile, sidebarOpen, x, openSidebar, closeSidebar]);
 
     return (
         <HeaderActionsContext.Provider value={setHeaderActions}>
@@ -66,187 +145,97 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 className="flex h-screen overflow-hidden"
                 style={{ background: "var(--color-editor-bg)" }}
             >
-                {/* Scrim — opacity is driven directly by the sidebar x position */}
+                {/* Scrim — driven by the same MotionValue as the sidebar, perfectly in sync */}
                 {isMobile && (
                     <motion.div
                         className="fixed inset-0 z-20"
                         style={{
                             background: "black",
-                            opacity: overlayOpacity,
+                            opacity: scrimOpacity,
                             pointerEvents: sidebarOpen ? "auto" : "none",
                         }}
                         onClick={closeSidebar}
                     />
                 )}
 
-                {/* Sidebar */}
-                {isMobile ? (
+                {/* Mobile sidebar — MotionValue position, native touch, no Framer drag prop */}
+                {isMobile && (
                     <motion.aside
-                        className="fixed inset-y-0 left-0 z-30 overflow-hidden"
+                        className="fixed inset-y-0 left-0 z-30 overflow-y-auto overflow-x-hidden"
                         style={{
                             width: SIDEBAR_W,
                             x,
                             background: "var(--color-sidebar-bg)",
-                            // Allow vertical scroll inside the sidebar; intercept horizontal drag
+                            willChange: "transform",
                             touchAction: "pan-y",
                         }}
-                        drag="x"
-                        dragConstraints={{ left: -SIDEBAR_W, right: 0 }}
-                        dragElastic={0}
-                        dragMomentum={false}
-                        onDragEnd={(_, info) => {
-                            // Close if dragged >40% of width or fast flick left
-                            if (
-                                info.velocity.x < -300 ||
-                                x.get() < -(SIDEBAR_W * 0.4)
-                            ) {
-                                closeSidebar();
-                            } else {
-                                openSidebar();
-                            }
-                        }}
+                        onTouchStart={onSidebarTouchStart}
+                        onTouchMove={onSidebarTouchMove}
+                        onTouchEnd={onSidebarTouchEnd}
                     >
-                        <Sidebar
-                            user={auth.user}
-                            notes={notes}
-                            onToggle={closeSidebar}
-                        />
+                        <Sidebar user={auth.user} notes={notes} onToggle={closeSidebar} />
                     </motion.aside>
-                ) : (
+                )}
+
+                {/* Desktop sidebar — animated width, no touch required */}
+                {!isMobile && (
                     <motion.aside
                         className="shrink-0 overflow-hidden"
                         style={{ background: "var(--color-sidebar-bg)" }}
                         animate={{ width: sidebarOpen ? SIDEBAR_W : 0 }}
                         initial={false}
-                        transition={{
-                            type: "spring",
-                            damping: 32,
-                            stiffness: 350,
-                            mass: 0.8,
-                        }}
+                        transition={{ type: "spring", damping: 32, stiffness: 350, mass: 0.8 }}
                     >
                         <div style={{ width: SIDEBAR_W }} className="h-full">
-                            <Sidebar
-                                user={auth.user}
-                                notes={notes}
-                                onToggle={toggleSidebar}
-                            />
+                            <Sidebar user={auth.user} notes={notes} onToggle={toggleSidebar} />
                         </div>
                     </motion.aside>
                 )}
 
                 {/* Main content */}
                 <main className="flex-1 min-w-0 flex flex-col overflow-hidden">
-                    {/* Navigation bar — always on mobile; on desktop shown when sidebar is
-                        closed OR when the page has injected actions (e.g. note editor) */}
+                    {/* Header — sticky, respects iOS notch / Dynamic Island safe area */}
                     {(isMobile || !sidebarOpen || !!headerActions) && (
                         <div
-                            className="flex items-center justify-between h-14 px-2 shrink-0 relative z-10"
+                            className="flex items-center justify-between px-2 shrink-0 relative z-10"
                             style={{
+                                height: "calc(3.5rem + env(safe-area-inset-top))",
+                                paddingTop: "env(safe-area-inset-top)",
                                 borderBottom: "1px solid var(--color-border)",
                                 background: "var(--color-editor-bg)",
                             }}
                         >
-                            {/* Hamburger — only when the sidebar toggle makes sense */}
                             {isMobile || !sidebarOpen ? (
                                 <button
                                     onClick={toggleSidebar}
-                                    className="w-11 h-11 flex items-center justify-center rounded-xl cursor-pointer"
-                                    style={{
-                                        color: "var(--color-text-secondary)",
-                                    }}
-                                    onMouseEnter={(e) =>
-                                        (e.currentTarget.style.background =
-                                            "var(--color-sidebar-hover)")
-                                    }
-                                    onMouseLeave={(e) =>
-                                        (e.currentTarget.style.background =
-                                            "transparent")
-                                    }
+                                    className="w-12 h-12 flex items-center justify-center rounded-xl cursor-pointer"
+                                    style={{ color: "var(--color-text-secondary)" }}
                                     aria-label="Toggle sidebar"
                                 >
-                                    <svg
-                                        width="20"
-                                        height="20"
-                                        viewBox="0 0 20 20"
-                                        fill="currentColor"
-                                    >
-                                        <rect
-                                            x="2"
-                                            y="4"
-                                            width="16"
-                                            height="1.75"
-                                            rx="0.875"
-                                        />
-                                        <rect
-                                            x="2"
-                                            y="9.125"
-                                            width="16"
-                                            height="1.75"
-                                            rx="0.875"
-                                        />
-                                        <rect
-                                            x="2"
-                                            y="14.25"
-                                            width="16"
-                                            height="1.75"
-                                            rx="0.875"
-                                        />
+                                    <svg width="22" height="22" viewBox="0 0 22 22" fill="currentColor">
+                                        <rect x="2" y="4.5" width="18" height="2" rx="1" />
+                                        <rect x="2" y="10" width="18" height="2" rx="1" />
+                                        <rect x="2" y="15.5" width="18" height="2" rx="1" />
                                     </svg>
                                 </button>
                             ) : (
-                                // Spacer keeps actions right-aligned via justify-between
                                 <span />
                             )}
 
-                            {/* Actions injected by the current page (e.g. pin/delete in Show.tsx) */}
                             {headerActions && (
-                                <div className="flex items-center">
-                                    {headerActions}
-                                </div>
+                                <div className="flex items-center">{headerActions}</div>
                             )}
                         </div>
                     )}
 
-                    <div className="flex-1 overflow-y-auto">{children}</div>
-                </main>
-
-                {/* Left-edge swipe zone — opens sidebar on mobile.
-                    Wider than the old 20px zone for easier triggering.
-                    Gives real-time position feedback before the threshold. */}
-                {isMobile && !sidebarOpen && (
+                    {/* Scrollable page content — bottom inset keeps content above home bar */}
                     <div
-                        className="fixed inset-y-0 left-0 z-10 w-8"
-                        style={{ touchAction: "pan-y" }}
-                        onTouchStart={(e) => {
-                            edgeStartX.current = e.touches[0].clientX;
-                        }}
-                        onTouchMove={(e) => {
-                            if (edgeStartX.current === null) return;
-                            const dx =
-                                e.touches[0].clientX - edgeStartX.current;
-                            if (dx > 0) {
-                                // Move sidebar live with the finger
-                                x.set(Math.min(0, -SIDEBAR_W + dx));
-                            }
-                            if (dx > 60) {
-                                openSidebar();
-                                edgeStartX.current = null;
-                            }
-                        }}
-                        onTouchEnd={() => {
-                            if (edgeStartX.current !== null) {
-                                // Didn't reach threshold — spring back
-                                animate(x, -SIDEBAR_W, {
-                                    type: "spring",
-                                    damping: 30,
-                                    stiffness: 300,
-                                });
-                            }
-                            edgeStartX.current = null;
-                        }}
-                    />
-                )}
+                        className="flex-1 overflow-y-auto"
+                        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+                    >
+                        {children}
+                    </div>
+                </main>
             </div>
         </HeaderActionsContext.Provider>
     );
