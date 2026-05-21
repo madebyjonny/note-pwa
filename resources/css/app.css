@@ -67,6 +67,23 @@ html.dark .bn-editor {
     margin-left: 0 !important;
 }
 
+/* Prevent BlockNote menus/popovers from overflowing the viewport on mobile.
+   Mantine portals these elements to <body> so they must be constrained globally.
+   Mantine's shift() middleware repositions them, but only when the element's
+   declared width fits; max-width ensures that's always the case. */
+.mantine-Menu-dropdown,
+.mantine-Popover-dropdown {
+    max-width: calc(100vw - 16px);
+    box-sizing: border-box;
+}
+
+/* The formatting toolbar itself can overflow on very narrow screens — scroll
+   horizontally rather than wrapping or clipping the buttons */
+.bn-formatting-toolbar {
+    max-width: calc(100vw - 16px);
+    overflow-x: auto;
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
     width: 6px;
