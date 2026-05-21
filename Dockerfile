@@ -60,8 +60,4 @@ RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cac
 #   SERVICE=reverb  → php artisan reverb:start (sunny-joy)
 #   SERVICE=web     → php artisan migrate + serve  (note-pwa)
 # The Railway service's Variables tab should set SERVICE accordingly.
-CMD if [ "$SERVICE" = "reverb" ]; then \
-        php artisan reverb:start --host=0.0.0.0 --port=${PORT:-8080}; \
-    else \
-        php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}; \
-    fi
+CMD ["/bin/sh", "-c", "if [ \"$SERVICE\" = \"reverb\" ]; then php artisan reverb:start --host=0.0.0.0 --port=$PORT; else php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT; fi"]
