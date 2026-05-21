@@ -1,5 +1,7 @@
 <p align="center"><img src="public/icons/icon.svg" width="80" alt="Notes App Logo"></p>
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/9kNNg3?referralCode=vZh9M9&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 # Notes PWA
 
 A Notion-inspired notes app. Block-based rich text editing, real-time sync, dark/light mode, and installable as a PWA on desktop and mobile.
