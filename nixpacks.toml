@@ -1,10 +1,8 @@
-[variables]
-NIXPACKS_PHP_VERSION = "8.4"
-NIXPACKS_PHP_EXTENSIONS = "pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl"
-
 [phases.setup]
-nixPkgs = ["php84Extensions.pcntl"]
+nixpkgs = ["php84", "php84Extensions.pcntl", "php84Extensions.pdo", "php84Extensions.pdo_mysql", "php84Extensions.pdo_pgsql", "php84Extensions.redis", "nodejs", "composer"]
 
 [phases.build]
-dependsOn = ["install"]
-cmds = ["php artisan optimize"]
+cmds = ["composer install --no-dev --optimize-autoloader", "npm run build"]
+
+[phases.start]
+cmd = "php artisan reverb:start --host=0.0.0.0 --port=$PORT"
