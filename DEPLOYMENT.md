@@ -59,30 +59,25 @@ VITE_REVERB_PORT=443
 VITE_REVERB_SCHEME=https
 ```
 
-## 4. PHP version
+## 4. Builder and PHP version
 
-Railway defaults to PHP 8.3. This project requires PHP 8.4 (Symfony 8 / Laravel 13). The `nixpacks.toml` in the repo root pins it automatically — no manual config needed.
-
-If Railway still picks the wrong version, add this environment variable in the service's **Variables** tab:
-
-```
-NIXPACKS_PHP_VERSION=8.4
-```
+Both services use the **Dockerfile** at the repo root (Railpack/Nixpacks are not used). The Dockerfile is based on `php:8.4-cli` and installs the `pcntl` extension required by Reverb, along with `pdo`, `pdo_mysql`, `pdo_pgsql`, `redis`, and other standard extensions.
 
 ## 5. Build command
 
-```bash
-composer install --no-dev --optimize-autoloader && npm install --legacy-peer-deps && npm run build
-```
-
-> Do **not** run `artisan config:cache` / `route:cache` / `view:cache` here — they run without real env vars at build time and will cache broken values.
-> `npm install` is used instead of `npm ci` to avoid an EBUSY error when Railway's cached `node_modules/.cache` directory is locked.
+The Dockerfile handles the full build (`composer install`, `npm ci`, `npm run build`). No separate build command needs to be set in Railway.
 
 ## 6. Start command
 
-```bash
-php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT
-```
+The Dockerfile `CMD` selects the correct start command based on the `SERVICE` environment variable. Set this in each service's **Variables** tab:
+
+| Service      | `SERVICE` value |
+| ------------ | --------------- |
+| `note-pwa`   | `web`           |
+| `sunny-joy`  | `reverb`        |
+
+- **`SERVICE=web`** runs: `php artisan migrate --force && php artisan optimize && php artisan serve --host=0.0.0.0 --port=$PORT`
+- **`SERVICE=reverb`** runs: `php artisan reverb:start --host=0.0.0.0 --port=$PORT`
 
 `php artisan optimize` runs config, route, view, and event caching in one step — with the real env vars available at start time.
 
@@ -90,11 +85,7 @@ php artisan migrate --force && php artisan optimize && php artisan serve --host=
 
 Add a second Railway service from the same repo.
 
-**Start command:**
-
-```bash
-php artisan reverb:start --host=0.0.0.0 --port=8080
-```
+Set `SERVICE=reverb` in the **Variables** tab of the `sunny-joy` service. The Dockerfile CMD will automatically run the Reverb start command.
 
 Once deployed, copy the service's Railway domain into `VITE_REVERB_HOST` on the `web` service.
 
@@ -124,11 +115,7 @@ On first visit the app redirects to `/setup` where you create your account. This
 ## Troubleshooting
 
 **Reverb service crashes: `Undefined constant "...SIGINT"`**
-The `pcntl` PHP extension is missing. `nixpacks.toml` enables it automatically. If you still see this error, add the following to the **Reverb** service's Variables tab and redeploy:
-
-```
-NIXPACKS_PHP_EXTENSIONS=pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl
-```
+The `pcntl` PHP extension is missing. The Dockerfile installs it via `docker-php-ext-install pcntl`. If you see this error it means the service is not using the Dockerfile — verify that Railway has detected the `Dockerfile` at the repo root and is not falling back to Nixpacks or Railpack.
 
 **Broadcasting fails: `cURL error 28: SSL connection timeout` to `https://0.0.0.0:8080`**
 `REVERB_HOST` on the web service is set to `0.0.0.0` — that's the Reverb server's bind address, not the address the web app connects to. Set `REVERB_HOST` on the **web** service to the Reverb service's Railway domain (e.g. `your-reverb-service.railway.app`), with `REVERB_PORT=443` and `REVERB_SCHEME=https`. The `0.0.0.0` bind address is only used inside the Reverb start command (`--host=0.0.0.0`) and should never appear as a `REVERB_HOST` value on the web service.
@@ -140,7 +127,7 @@ Railway terminates SSL at its proxy and forwards requests to your app over plain
 - Make sure `APP_URL` and `ASSET_URL` both start with `https://` in your Railway Variables.
 
 **`composer install` fails: lock file not compatible, requires PHP >=8.4`**
-Railway picked PHP 8.3. Add `NIXPACKS_PHP_VERSION=8.4` to the service's environment variables and redeploy.
+The Dockerfile uses `php:8.4-cli` as the base image, so this should not occur. If it does, confirm Railway is building from the Dockerfile and not a Nixpacks/Railpack auto-detected builder.
 
 **`npm ci` fails: package-lock.json out of sync**
 Run `npm install --legacy-peer-deps` locally, commit the updated `package-lock.json`, and push.
