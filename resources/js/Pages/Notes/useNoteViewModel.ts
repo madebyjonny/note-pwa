@@ -45,12 +45,25 @@ export function useNoteViewModel(note: Note): NoteViewModel {
 
         const channel = window.Echo.private(`notes.${auth.user.id}`);
 
-        channel.listen(".NoteUpdated", (e: { id: number; title: string }) => {
-            if (e.id === note.id) setTitle(e.title);
-        });
+        channel.listen(
+            ".NoteUpdated",
+            (e: {
+                id: number;
+                title: string;
+                emoji: string | null;
+                is_pinned: boolean;
+            }) => {
+                if (e.id === note.id) setTitle(e.title);
+                router.reload({ only: ["notes"] });
+            },
+        );
 
         channel.listen(".NoteDeleted", (e: { id: number }) => {
-            if (e.id === note.id) router.visit(route("notes.index"));
+            if (e.id === note.id) {
+                router.visit(route("notes.index"));
+            } else {
+                router.reload({ only: ["notes"] });
+            }
         });
 
         return () => window.Echo.leave(`notes.${auth.user.id}`);

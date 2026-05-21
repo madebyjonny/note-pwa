@@ -36,20 +36,6 @@ class NoteController extends Controller
         return redirect()->route('notes.show', $note);
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $validated = $request->validate([
-            'title' => ['required', 'string', 'max:255'],
-            'content' => ['nullable', 'array'],
-            'parent_id' => ['nullable', 'integer', 'exists:notes,id'],
-            'emoji' => ['nullable', 'string', 'max:10'],
-        ]);
-
-        $note = auth()->user()->notes()->create($validated);
-
-        return redirect()->route('notes.show', $note);
-    }
-
     public function show(Note $note): Response
     {
         $this->authorize('view', $note);

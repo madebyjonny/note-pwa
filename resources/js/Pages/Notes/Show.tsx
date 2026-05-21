@@ -74,5 +74,3 @@ export default function Show({ note }: Props) {
 }
 
 Show.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
-
-Show.layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>;
