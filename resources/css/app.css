@@ -77,6 +77,14 @@ html.dark .bn-editor {
     box-sizing: border-box;
 }
 
+/* .bn-panel (image/file insert panel) has a hardcoded width: 500px which
+   overflows on any mobile viewport. Cap it to the viewport width so
+   floating-ui's shift() middleware can keep it fully visible. */
+.bn-panel {
+    width: min(500px, calc(100vw - 16px)) !important;
+    box-sizing: border-box;
+}
+
 /* The formatting toolbar itself can overflow on very narrow screens — scroll
    horizontally rather than wrapping or clipping the buttons */
 .bn-formatting-toolbar {
