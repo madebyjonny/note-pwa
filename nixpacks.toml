@@ -2,6 +2,9 @@
 NIXPACKS_PHP_VERSION = "8.4"
 NIXPACKS_PHP_EXTENSIONS = "pcntl,pdo_pgsql,mbstring,xml,curl,zip,bcmath,intl"
 
+[phases.setup]
+nixPkgs = ["php84Extensions.pcntl"]
+
 [phases.build]
 dependsOn = ["install"]
 cmds = ["php artisan optimize"]
