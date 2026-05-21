@@ -1,0 +1,126 @@
+{
+    "$schema": "https://railway.com/railway.schema.json",
+    "services": [
+        {
+            "name": "note-pwa",
+            "build": {
+                "builder": "DOCKERFILE",
+                "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+                "preDeployCommand": "php artisan migrate --force",
+                "healthcheckPath": "/",
+                "healthcheckTimeout": 300,
+                "restartPolicyType": "ON_FAILURE",
+                "restartPolicyMaxRetries": 3
+            },
+            "variables": {
+                "SERVICE": "web",
+
+                "APP_NAME": "Notes",
+                "APP_ENV": "production",
+                "APP_DEBUG": "false",
+                "APP_URL": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+                "ASSET_URL": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+
+                "APP_LOCALE": "en",
+                "APP_FALLBACK_LOCALE": "en",
+                "APP_FAKER_LOCALE": "en_US",
+                "APP_MAINTENANCE_DRIVER": "file",
+
+                "BCRYPT_ROUNDS": "12",
+
+                "LOG_CHANNEL": "stderr",
+                "LOG_LEVEL": "error",
+
+                "DB_CONNECTION": "pgsql",
+                "DB_HOST": "${{Postgres.PGHOST}}",
+                "DB_PORT": "${{Postgres.PGPORT}}",
+                "DB_DATABASE": "${{Postgres.PGDATABASE}}",
+                "DB_USERNAME": "${{Postgres.PGUSER}}",
+                "DB_PASSWORD": "${{Postgres.PGPASSWORD}}",
+
+                "SESSION_DRIVER": "database",
+                "SESSION_LIFETIME": "120",
+                "SESSION_ENCRYPT": "false",
+                "SESSION_PATH": "/",
+                "SESSION_DOMAIN": "null",
+
+                "BROADCAST_CONNECTION": "reverb",
+                "FILESYSTEM_DISK": "local",
+                "QUEUE_CONNECTION": "sync",
+                "CACHE_STORE": "database",
+
+                "REVERB_APP_ID": "${{sunny-joy.REVERB_APP_ID}}",
+                "REVERB_APP_KEY": "${{sunny-joy.REVERB_APP_KEY}}",
+                "REVERB_APP_SECRET": "${{sunny-joy.REVERB_APP_SECRET}}",
+                "REVERB_HOST": "${{sunny-joy.RAILWAY_PUBLIC_DOMAIN}}",
+                "REVERB_PORT": "443",
+                "REVERB_SCHEME": "https",
+
+                "VITE_APP_NAME": "Notes",
+                "VITE_REVERB_APP_KEY": "${{sunny-joy.REVERB_APP_KEY}}",
+                "VITE_REVERB_HOST": "${{sunny-joy.RAILWAY_PUBLIC_DOMAIN}}",
+                "VITE_REVERB_PORT": "443",
+                "VITE_REVERB_SCHEME": "https",
+
+                "MAIL_MAILER": "log",
+                "MAIL_FROM_ADDRESS": "hello@example.com",
+                "MAIL_FROM_NAME": "Notes"
+            }
+        },
+        {
+            "name": "sunny-joy",
+            "build": {
+                "builder": "DOCKERFILE",
+                "dockerfilePath": "Dockerfile"
+            },
+            "deploy": {
+                "restartPolicyType": "ALWAYS"
+            },
+            "variables": {
+                "SERVICE": "reverb",
+
+                "APP_NAME": "Notes",
+                "APP_ENV": "production",
+                "APP_DEBUG": "false",
+                "APP_URL": "https://${{RAILWAY_PUBLIC_DOMAIN}}",
+
+                "APP_LOCALE": "en",
+                "APP_FALLBACK_LOCALE": "en",
+                "APP_FAKER_LOCALE": "en_US",
+                "APP_MAINTENANCE_DRIVER": "file",
+
+                "BCRYPT_ROUNDS": "12",
+
+                "LOG_CHANNEL": "stderr",
+                "LOG_LEVEL": "error",
+
+                "DB_CONNECTION": "pgsql",
+                "DB_HOST": "${{Postgres.PGHOST}}",
+                "DB_PORT": "${{Postgres.PGPORT}}",
+                "DB_DATABASE": "${{Postgres.PGDATABASE}}",
+                "DB_USERNAME": "${{Postgres.PGUSER}}",
+                "DB_PASSWORD": "${{Postgres.PGPASSWORD}}",
+
+                "BROADCAST_CONNECTION": "reverb",
+                "FILESYSTEM_DISK": "local",
+                "QUEUE_CONNECTION": "sync",
+                "CACHE_STORE": "database",
+                "SESSION_DRIVER": "database",
+                "SESSION_LIFETIME": "120",
+                "SESSION_ENCRYPT": "false",
+                "SESSION_PATH": "/",
+                "SESSION_DOMAIN": "null",
+
+                "REVERB_HOST": "0.0.0.0",
+                "REVERB_PORT": "${{RAILWAY_TCP_PROXY_PORT}}",
+                "REVERB_SCHEME": "https",
+
+                "MAIL_MAILER": "log",
+                "MAIL_FROM_ADDRESS": "hello@example.com",
+                "MAIL_FROM_NAME": "Notes"
+            }
+        }
+    ]
+}

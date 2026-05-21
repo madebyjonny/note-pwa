@@ -95,6 +95,7 @@ function NoteItem({
 
                 <Link
                     href={route("notes.show", { note: note.id })}
+                    prefetch
                     className="flex items-center gap-2 flex-1 min-w-0 text-[15px] py-1"
                 >
                     <span className="shrink-0 text-lg leading-none">
@@ -247,7 +248,11 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                     <motion.div
                         key={item.label}
                         whileTap={{ scale: 0.97 }}
-                        onClick={item.action}
+                        onClick={() =>
+                            item.action
+                                ? item.action()
+                                : item.href && router.visit(item.href)
+                        }
                         className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11"
                         style={{ color: "var(--color-text-secondary)" }}
                         onMouseEnter={(e) =>
@@ -259,13 +264,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                         }
                     >
                         {item.icon}
-                        {item.href ? (
-                            <Link href={item.href} className="text-[15px]">
-                                {item.label}
-                            </Link>
-                        ) : (
-                            <span className="text-[15px]">{item.label}</span>
-                        )}
+                        <span className="text-[15px]">{item.label}</span>
                     </motion.div>
                 ))}
             </div>
@@ -350,12 +349,16 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                                         color: "var(--color-text-secondary)",
                                     }}
                                     onMouseEnter={(e) => {
-                                        e.currentTarget.style.background = "var(--color-sidebar-hover)";
-                                        e.currentTarget.style.color = "var(--color-text-primary)";
+                                        e.currentTarget.style.background =
+                                            "var(--color-sidebar-hover)";
+                                        e.currentTarget.style.color =
+                                            "var(--color-text-primary)";
                                     }}
                                     onMouseLeave={(e) => {
-                                        e.currentTarget.style.background = "transparent";
-                                        e.currentTarget.style.color = "var(--color-text-secondary)";
+                                        e.currentTarget.style.background =
+                                            "transparent";
+                                        e.currentTarget.style.color =
+                                            "var(--color-text-secondary)";
                                     }}
                                     aria-label="New note"
                                 >
@@ -408,7 +411,7 @@ export default function Sidebar({ user, notes, onToggle }: Props) {
                     </span>
                 </motion.div>
 
-                <Link href={route("profile.edit")}>
+                <Link href={route("profile.edit")} prefetch>
                     <motion.div
                         whileTap={{ scale: 0.97 }}
                         className="flex items-center gap-3 px-3 rounded-lg cursor-pointer min-h-11"

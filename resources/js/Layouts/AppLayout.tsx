@@ -196,7 +196,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 {/* Scrim — driven by the same MotionValue as the sidebar, perfectly in sync */}
                 {isMobile && (
                     <motion.div
-                        className="fixed inset-0 z-20"
+                        className="fixed inset-0 z-55"
                         style={{
                             background: "black",
                             opacity: scrimOpacity,
@@ -209,7 +209,7 @@ export default function AppLayout({ children }: PropsWithChildren) {
                 {/* Mobile sidebar — MotionValue position, native touch, no Framer drag prop */}
                 {isMobile && (
                     <motion.aside
-                        className="fixed inset-y-0 left-0 z-30 overflow-y-auto overflow-x-hidden"
+                        className="fixed inset-y-0 left-0 z-60 overflow-y-auto overflow-x-hidden"
                         style={{
                             width: SIDEBAR_W,
                             x,

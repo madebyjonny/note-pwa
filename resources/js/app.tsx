@@ -30,7 +30,7 @@ if (typeof window !== "undefined") {
 }
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
+    title: () => appName,
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.tsx`,

@@ -12,7 +12,7 @@ use Inertia\Response;
 
 class NoteController extends Controller
 {
-    public function index(): RedirectResponse
+    public function index(): Response|RedirectResponse
     {
         $note = auth()->user()->notes()
             ->orderByDesc('is_pinned')
@@ -23,7 +23,7 @@ class NoteController extends Controller
             return redirect()->route('notes.show', $note);
         }
 
-        return redirect()->route('notes.create');
+        return Inertia::render('Notes/Empty');
     }
 
     public function create(): RedirectResponse
@@ -94,6 +94,6 @@ class NoteController extends Controller
             return redirect()->route('notes.show', $next);
         }
 
-        return redirect()->route('notes.create');
+        return redirect()->route('notes.index');
     }
 }
